@@ -19,6 +19,15 @@ from .config import settings
 # import time
 # from psycopg2.extras import RealDictCursor
 
+"""
+IMPORTANT NOTE:
+
+Using heroku means that the database instane is located under the heroku app
+https://dashboard.heroku.com/apps/pythonapi-adnandmth/settings
+
+The following setup would not take the variables set in the local env file since this file 
+is not checked in the git repository but it takes the VARs available in the heroku production app VARs
+"""
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://<username>:<password>@<ip address/hostname>/<db_name>"
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"

@@ -16,7 +16,7 @@ Python JWTJSON Web Token is a succinct, URL-safe mechanism to represent claims t
 JOSE is one of the most used libs in python to handle JWT token creation
 """
 #SECRET_KEY
-SECRET_KEY = settings.secret_key
+SECRET_KEY = settings.secret_key # string from rand hex 32 according to the documentation
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
