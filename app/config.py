@@ -15,7 +15,16 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
-    # tells pydantic to import the ENV setting file
+    
+    """
+    tells pydantic to import the ENV setting file
+
+    In the production, this reference will be replaced by the hosting env variables,
+    since we don't include the local ENV into the remote repositories
+
+    Since our app is based on Heroku, it knows how to fetch the VARs into this setting class.
+    This is can be achieved using this pydantic library that checks any dependencies required by the class
+    """
     class Config:
         env_file = ".env" # name of the file containing the ENVs
 

@@ -22,7 +22,7 @@ from .config import settings
 """
 IMPORTANT NOTE:
 
-Using heroku means that the database instane is located under the heroku app
+Using heroku means that the database instance is located under the heroku app
 https://dashboard.heroku.com/apps/pythonapi-adnandmth/settings
 
 The following setup would not take the variables set in the local env file since this file 
@@ -37,6 +37,12 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+"""
+Create a Base class
+Now we will use the function declarative_base() that returns a class.
+
+Later we will inherit from this class to create each of the database models or classes (the ORM models):
+"""
 Base = declarative_base() # extending declarative base class
  
 """

@@ -1,7 +1,8 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
-from pydantic.types import conint
+from typing import Annotated, Optional
+
+# from pydantic.types import conint
 
 """
 extends the BaseModel from pydantic lib to validate certain variables.
@@ -63,7 +64,7 @@ class TokenData(BaseModel):
 
 class Vote(BaseModel):
     post_id: int
-    dir: conint(le=1) # conint = count integer that provides validation boundary
+    dir: Annotated[int, Field(strict=True, le=1)] # conint = count integer that provides validation boundary
 
 
 
