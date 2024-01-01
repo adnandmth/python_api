@@ -46,4 +46,4 @@ app.include_router(vote.router)
 
 @app.get("/")
 def root():
-    return {"message": "Successfully deployed to Heroku using github/actions"}
+    return {"message": "Successfully deployed to Heroku using automated pipeline"}
