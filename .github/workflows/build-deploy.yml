@@ -14,7 +14,8 @@ on: [push, pull_request]
 # create the job upon initial trigger
 jobs:
   job1:
-    environment:
+    # referencing environment variables set in the github actions
+    environment: 
       name: testing # https://github.com/adnandmth/python_api/settings/environments/1957271115/edit
     env:
       DATABASE_HOSTNAME: ${{secrets.DATABASE_HOSTNAME}}
@@ -25,6 +26,24 @@ jobs:
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALGORITHM: ${{secrets.ALGORITHM}}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${{secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: ${{secrets.DATABASE_PASSWORD}}
+          POSTGRES_DATABASE: ${{secrets.DATABASE_NAME}}
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
     runs-on: ubuntu-latest # practically you can select other OS as well
     steps:
       - name: pulling git repo
