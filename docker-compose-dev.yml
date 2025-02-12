@@ -25,7 +25,7 @@ services:
     image: postgres
     environment:
       - POSTGRES_PASSWORD=jerapah102938
-      - POSTGRES_DB=fastapi
+      - POSTGRES_DB=python_api
     volumes:
       - postgres-db:/var/lib/postgresql/data
 

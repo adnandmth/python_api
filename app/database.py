@@ -1,88 +1,82 @@
-"""
-ORMs
-FastAPI works with any database and any style of library to talk to the database.
-
-A common pattern is to use an "ORM": an "object-relational mapping" library.
-
-An ORM has tools to convert ("map") between objects in code and database tables ("relations").
-
-With an ORM, you normally create a class that represents a table in a SQL database, each attribute of the class represents a column, with a name and a type.
-
-sqlalchemy is one of the libraries that support this ORMs
-
-"""
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from .config import settings
-# import psycopg2 as psy
-# import time
-# from psycopg2.extras import RealDictCursor
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 """
-IMPORTANT NOTE:
+📌 ORMs (Object-Relational Mappers)
+FastAPI works with any database and supports multiple database libraries.
 
-Using heroku means that the database instance is located under the heroku app
-https://dashboard.heroku.com/apps/pythonapi-adnandmth/settings
+One of the most common approaches is using an "ORM" (Object-Relational Mapper).
+An ORM provides tools to map objects in Python code to tables in a SQL database.
 
-The following setup would not take the variables set in the local env file since this file 
-is not checked in the git repository but it takes the VARs available in the heroku production app VARs
+✅ Benefits of using an ORM:
+- Automatically converts Python objects into database rows/columns.
+- Reduces SQL query complexity.
+- Improves maintainability and security.
+
+🔹 SQLAlchemy is one of the most widely used ORMs in FastAPI.
 """
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://<username>:<password>@<ip address/hostname>/<db_name>"
+
+# ✅ Database Connection Configuration
+"""
+📌 IMPORTANT:
+Using Heroku means the database instance is managed under the Heroku app.
+
+⚠️ Production Setup:
+- The app retrieves database credentials from the **Heroku app environment variables**.
+- Local development uses the `settings` module to fetch database credentials from **config.py**.
+
+Heroku App: https://dashboard.heroku.com/apps/pythonapi-adnandmth/settings
+"""
+
+# Construct the database URL dynamically (works for both local & production)
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL
-)
+# ✅ Create a new database engine using SQLAlchemy
+"""
+The `create_engine` function initializes the database connection.
+- The `SQLALCHEMY_DATABASE_URL` specifies the database type (PostgreSQL) and connection details.
+"""
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+logger.info("Database engine initialized.")
+
+# ✅ Create a database session
+"""
+`SessionLocal` is a factory for new database session instances.
+
+- `autocommit=False`: Ensures transactions are explicitly committed.
+- `autoflush=False`: Prevents automatic flushing of changes.
+- `bind=engine`: Links the session with the database engine.
+"""
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# ✅ Create a base class for ORM models
 """
-Create a Base class
-Now we will use the function declarative_base() that returns a class.
-
-Later we will inherit from this class to create each of the database models or classes (the ORM models):
+`Base` is a class from which all ORM models will inherit.
+Each model will represent a database table.
 """
-Base = declarative_base() # extending declarative base class
+Base = declarative_base()
  
+# ✅ Dependency: Database Session Generator
 """
-get_db from database is the base of database creation and connection
-engine is where the database engine was setup.
+📌 `get_db()` - Dependency Injection for Database Sessions
 
-Instantiate the session.
+- Each request gets a new database session instance.
+- The session is closed automatically once the request is completed.
+- This prevents memory leaks and ensures efficient database connections.
 
-Each instance of the SessionLocal class will be a database session. The class itself is not a database session yet.
-
-But once we create an instance of the SessionLocal class, this instance will be the actual database session.
+Usage in FastAPI routes:
 """
 def get_db():
-    db = SessionLocal() # get the connected DB
+    db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-"""
-connecting to the postgres DB
-
-We put it inside a while loop to handle data connection issue.
-It will keep calling the DB until it was successfully connected
-
-Add a time to give a buffer before the next attempt is conducted
-"""
-# while True:
-
-#     try:
-#         conn = psy.connect(
-#             host='localhost',
-#             database='python_api',
-#             user='postgres',
-#             password='jerapah102938',
-#             cursor_factory=RealDictCursor
-#         )
-#         cursor = conn.cursor()
-#         print("Database connection was successfully connected")
-#         break
-#     except Exception as error:
-#         print(f"Failed connecting the database --- {error}")
-#         time.sleep(2) # 2 seconds sleep
+        logger.info("Database session closed.")

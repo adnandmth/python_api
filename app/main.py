@@ -1,35 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import models
 from .database import engine
-from .routers import post, user, auth, vote
-from .config import settings
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from .routers import user, auth, speech
 
 """
-This will create all the tables configured in the Base class as soon
-as the app is started
+This app uses Alembic for database migrations, so automatic table creation
+via SQLAlchemy's `create_all` is not required.
 
-from models package -> Base (parent class of the Post class/Inheritance)
--> Metadata from the library -> create_all by binding the engine as the source DB
-"""
-# models.Base.metadata.create_all(bind=engine) --> Commented out as this app is using alembic as the DB source control
+To run the FastAPI server, use the following command:
+  uvicorn {module_name}:{app_instance} --reload
 
+- `--reload` enables auto-reloading when code changes.
 """
-Create an instance of FastAPI
+# models.Base.metadata.create_all(bind=engine)  # Uncomment if not using Alembic
 
-To run the web server, use uvicorn lib with the following syntax
-- uvicorn {your main}:{app instance} --reload
-- --reload is a special lib to auto reload when code was modified
-"""
+# Initialize FastAPI instance
 app = FastAPI()
 
+# Allow all origins for CORS (adjust for production security)
 origins = ["*"] 
-
-# https://fastapi.tiangolo.com/tutorial/cors/
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -38,12 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
         
-# calling the router that we set inside "routers" folder
-app.include_router(post.router)
+# Include routers for different app modules
 app.include_router(user.router)
 app.include_router(auth.router)
-app.include_router(vote.router)
+app.include_router(speech.router)
 
 @app.get("/")
 def root():
-    return {"message": "Successfully deployed to Heroku using automated pipeline"}
+    return {"message": "alive"}

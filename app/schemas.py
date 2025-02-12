@@ -1,56 +1,37 @@
-from pydantic import BaseModel, EmailStr, Field
+import logging
+from pydantic import BaseModel, EmailStr, Field, ValidationError
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
-# from pydantic.types import conint
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 """
-extends the BaseModel from pydantic lib to validate certain variables.
+This module contains Pydantic models for request validation and data transfer.
 
-Use this approach to validate any given params.
-for POST request, it's strongly recommended to use thus pydantic validation
-This ensure that when a user wants to create a post, the request
-will only go through if it has everything this class defines
+- Extends Pydantic's `BaseModel` to validate incoming data.
+- Ensures API requests conform to expected formats.
+- Improves error handling and debugging.
+
+Pydantic automatically validates and converts incoming data before it reaches business logic.
 """
-class PostBase(BaseModel):
-    title: str
-    content: str
-    published: bool = True # default value to TRUE, this becomes optional with value
-    # rating: Optional[int] = None # fully optional field
-
-class PostCreate(PostBase):
-    pass
-
 class UserOut(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
 
-    class config:
-        orm_mode = True
-
-class Post(PostBase):
-    id: int
-    created_at: datetime
-    owner_id: int
-    # owner: UserOut # return the pydantic model from a different class
-
-    """
-    We use this config inner class to override the default return type object
-    to be a standard python dictionary. Not configuring this class will yield and
-    error in the class whose return data is dependent on this scheme.
-    """
-    class config:
-        orm_mode = True
-
-class PostOut(BaseModel):
-    Post: Post
-    votes: int
-
+    class Config:
+        """Enable ORM compatibility."""
+        from_attributes = True
+    
 class UserCreate(BaseModel):
-    email: EmailStr # validate email using pydantic lib
+    email: EmailStr 
     password: str
 
+    def log_data(self):
+        logger.info(f"User Registration - Email: {self.email}")
+        
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -58,13 +39,23 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
+    
 class TokenData(BaseModel):
-    id: Optional[str]
+    id: Optional[str] = None  # ID might be missing if token is invalid
+      
+class SentimentAnalysis(BaseModel):
+    sentiment: str = Field(..., example="positive")  # Can be positive, negative, or neutral
+    score: float = Field(..., example=0.7)  # Sentiment score (-1 to +1)
+    
+class SpeechTranscription(BaseModel):
+    transcription: str = Field(..., example="Halo selamat sore")  # The transcribed text
+    sentiment: SentimentAnalysis  # Link transcription with sentiment
 
-class Vote(BaseModel):
-    post_id: int
-    dir: Annotated[int, Field(strict=True, le=1)] # conint = count integer that provides validation boundary
+class OverallSentiment(BaseModel):
+    overall_sentiment: str = Field(..., example="positive")  # Overall sentiment classification
+    average_score: float = Field(..., example=0.4667)  # Average sentiment score
 
-
-
+class TranscriptionResponse(BaseModel):
+    filename: str = Field(..., example="test.wav")  # Name of the uploaded file
+    transcriptions: List[SpeechTranscription]  # List of transcribed lines with sentiment
+    overall_sentiment: OverallSentiment  # Aggregated sentiment of the call
