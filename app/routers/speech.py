@@ -17,9 +17,12 @@ translator = Translator()
 
 @router.post("/transcribe", response_model=schemas.TranscriptionResponse, status_code=status.HTTP_201_CREATED)
 async def transcribe_audio(
-    file: UploadFile = File(...), db: Session = Depends(get_db)
-):
+    file: UploadFile = File(...), db: Session = Depends(get_db), current_user : int = Depends(oauth2.get_current_user)
+):  
     """Transcribe, analyze sentiment, store in DB, and return structured data."""
+    
+    print(f"--- current user --- : {current_user}")
+    
     try:
         audio_bytes = await file.read()
         transcriptions = transcribe_audio_from_bytes(audio_bytes)
@@ -36,11 +39,11 @@ async def transcribe_audio(
         overall_sentiment = calculate_overall_sentiment([t.sentiment for t in speech_transcriptions])
 
         # Mock Salesforce-related ID and Call ID
-        related_to_id = "SF12345"  # Replace with actual related ID from request
-        call_id = file.filename  # Use filename as call ID (or parse from metadata)
+        related_to_id = "SF1256"  # Replace with actual related ID from request
+        call_id = '1234asas'  # Use filename as call ID (or parse from metadata)
 
         # Save to database
-        new_log = save_transcription_to_db(db, related_to_id, call_id, overall_sentiment)
+        new_log = save_transcription_to_db(db, related_to_id, call_id, overall_sentiment.overall_sentiment)
         print(f'new log: {new_log}')
 
         # Construct response
@@ -50,7 +53,7 @@ async def transcribe_audio(
             overall_sentiment=overall_sentiment
         )
 
-        logging.info(f"API Response: {response.json()}")
+        logging.info(f"API Response: {response.model_dump_json()}")
         return response
 
     except Exception as e:
